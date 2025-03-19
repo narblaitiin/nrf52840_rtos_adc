@@ -56,7 +56,7 @@ int16_t app_nrf52_get_adc()
 	    return 0;
     }
 
-    // battery level received and converted from channel get
+    // analog level received and converted from channel get
     // resolution 12bits: 0 to 4095 (uint16)
     ret = adc_raw_to_millivolts_dt(&adc_channel, &val_mv);
     if (ret < 0) {
