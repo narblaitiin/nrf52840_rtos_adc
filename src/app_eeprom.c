@@ -5,11 +5,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+//  ========== includes ====================================================================
 #include "app_eeprom.h"
 #include "app_rtc.h"
-
-//  ========== globals =====================================================================
-int8_t ind;		// declaration of isr index
 
 //  ========== app_eeprom_init =============================================================
 int8_t app_eeprom_init(const struct device *dev)
@@ -41,19 +39,16 @@ int8_t app_eeprom_init(const struct device *dev)
 		printf("MX25R64 flash erase failed. error: %d ", ret);
 	} else {
 		printk("MX25R64 flash erase succeeded", size);
-	}
-
-	// initialisation of isr index
-	ind = 0;	
+	}	
 	return 0;
 }
 
 //  ========== app_eeprom_write ============================================================
-int8_t app_eeprom_write(const struct device *dev, uint16_t data[])
+int8_t app_eeprom_write(const struct device *dev, int16_t data)
 {
 	int8_t ret = 0;
 	
-	// writing data in the first page of 4kbytes
+	// writing data in the first page of QSPI flah memory
 	ret = flash_write(dev, SPI_FLASH_OFFSET, &data, sizeof(data));
 
 	if (ret!=0) {
@@ -63,17 +58,16 @@ int8_t app_eeprom_write(const struct device *dev, uint16_t data[])
 	}
 
 	// printing data
-	for (ind = 0; ind < MAX_RECORDS; ind++) {
-		printk("wrt -> rom val: %"PRIu16"\n", data[ind]);
-	}
+	printk("wrt -> rom val: %d\n", data);
 	return 0;
 }
 
 //  ========== app_rom_read ================================================================
-int8_t app_eeprom_read(const struct device *dev)
+int16_t app_eeprom_read(const struct device *dev)
 {
 	int8_t ret = 0;
-	uint16_t data[MAX_RECORDS];
+	int8_t i;
+	int16_t data[MAX_RECORDS];
 
 	// reading the first page
 	ret = flash_read(dev, SPI_FLASH_OFFSET, &data, sizeof(data));
@@ -83,19 +77,19 @@ int8_t app_eeprom_read(const struct device *dev)
 		printk("read %zu bytes from address 0x00\n", sizeof(data));
 	}
 
-	// reading data
-	for (ind = 0; ind < MAX_RECORDS; ind++) {
-		printk("rd -> rom val: %"PRIu16"\n", data[ind]);
+	for (int8_t i = 0; i < MAX_RECORDS; i++) {
+		printk("rd -> rom val: %d\n", data[i]);
 	}
-	return 0;
+	return data;
 }
 
 //  ======== app_rom_handler =======================================
-int8_t app_rom_handler(const struct device *dev)
+int8_t app_eeprom_handler(const struct device *dev)
 {
 	int8_t ret = 0;
 	int16_t data[MAX_RECORDS];
-	int *timestamp;
+	int16_t high, low;
+	int32_t timestamp;
 	const struct device *rtc;
 
 	// getting eeprom device
@@ -108,21 +102,32 @@ int8_t app_rom_handler(const struct device *dev)
 	timestamp = app_rtc_get_time(rtc);
 
 	// putting timestamp at the beginning of the fisrt page for this test
-	app_rom_write(dev, timestamp);
+	// extract the high 16 bits and write to eeprom
+    high = (int16_t)((timestamp >> 16) & 0xFFFF);
+    app_eeprom_write(dev, high);
 
+    // extract the low 16 bits
+    low = (int16_t)(timestamp & 0xFFFF);
+	app_eeprom_write(dev, low);
+	
 	// putting n structures in fisrt page for this test
-	while (ind < MAX_RECORDS) {
-		data[ind] = app_adc_get_val();
-		ind++;
+	for (int8_t itr; itr < MAX_RECORDS; itr++) {
+		data[itr] = app_nrf52_get_adc();
+		app_eeprom_write(dev, data);
 	}
 
-	// writing and reading stored data
-	app_rom_write(dev, data);
-	app_rom_read(dev);
+	// reading stored data
+	for (int8_t itr = 0; itr < MAX_RECORDS; itr++) {
+	 	data[itr] = app_eeprom_read(dev);
+	}
 
+	for (int8_t itr = 0; itr < MAX_RECORDS; itr++) {
+		int32_t num = ((int32_t)data[0] << 16) | (int32_t)data[1];
+		printk("rd -> timestamp: %d\n", num);
+		printk("rd -> adc value: %d\n", data[itr+2]);
+   }
 	// cleaning data storage partition
 	(void)flash_erase(dev, SPI_FLASH_OFFSET, SPI_FLASH_SECTOR_SIZE*SPI_FLASH_PAGE_SIZE);
-	ind = 0;
 	return 0;
 }
 

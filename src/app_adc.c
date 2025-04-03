@@ -1,18 +1,20 @@
 /*
- * Copyright (c) 2024
+ * Copyright (c) 2025
  * Regis Rousseau
  * Univ Lyon, INSA Lyon, Inria, CITI, EA3720
  * SPDX-License-Identifier: Apache-2.0
  */
 
+//  ========== includes ====================================================================
 #include "app_adc.h"
 
 //  ========== globals =====================================================================
 int16_t buf;
 static const struct adc_dt_spec adc_channel = ADC_DT_SPEC_GET(DT_PATH(zephyr_user));
 struct adc_sequence sequence = {
-		.buffer = &buf,
-		.buffer_size = sizeof(buf), // in bytes
+    .channels = 0,
+	.buffer = &buf,
+	.buffer_size = sizeof(buf),
 };
 
 //  ========== app_nrf52_adc_init ==========================================================
@@ -49,6 +51,7 @@ int16_t app_nrf52_get_adc()
     int8_t ret;
 
     val_mv = (int)buf;
+    
     // reading sample from the ADC
     ret = adc_read(adc_channel.dev, &sequence);
     if (ret < 0 ) {        

@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2024
+ * Copyright (c) 2025
  * Regis Rousseau
  * Univ Lyon, INSA Lyon, Inria, CITI, EA3720
  * SPDX-License-Identifier: Apache-2.0
  */
 
+//  ========== includes ====================================================================
 #include "app_eeprom.h"
 #include "app_adc.h"
 #include "app_rtc.h"
@@ -15,7 +16,7 @@ void geo_work_handler(struct k_work *work_geo)
 	const struct device *rom_dev;
 
 	printk("ADC handler called\n");
-//	app_rom_handler(rom_dev);
+	app_eeprom_handler(rom_dev);
 }
 K_WORK_DEFINE(geo_work, geo_work_handler);
 
@@ -38,7 +39,7 @@ int8_t main(void)
 	printk("ADC nRF52 and RTC DS3231 Example\nBoard: %s\n", CONFIG_BOARD);
 
 	// beginning of interrupt subroutine
-	k_timer_start(&geo_timer, K_NO_WAIT, K_MSEC(5000));
+	k_timer_start(&geo_timer, K_NO_WAIT, K_MSEC(30000));
 	
 	return 0;
 }
