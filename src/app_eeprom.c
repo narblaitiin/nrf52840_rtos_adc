@@ -121,10 +121,11 @@ int8_t app_eeprom_handler(const struct device *dev)
 	 	data[itr] = app_eeprom_read(dev);
 	}
 
-	for (int8_t itr = 0; itr < MAX_RECORDS; itr++) {
-		int32_t num = ((int32_t)data[0] << 16) | (int32_t)data[1];
+	int32_t num = ((int32_t)data[0] << 16) | (int32_t)data[1];
 		printk("rd -> timestamp: %d\n", num);
-		printk("rd -> adc value: %d\n", data[itr+2]);
+
+	for (int8_t itr = 2; itr < MAX_RECORDS; itr++) {
+		printk("rd -> adc value: %d\n", data[itr]);
    }
 	// cleaning data storage partition
 	(void)flash_erase(dev, SPI_FLASH_OFFSET, SPI_FLASH_SECTOR_SIZE*SPI_FLASH_PAGE_SIZE);
