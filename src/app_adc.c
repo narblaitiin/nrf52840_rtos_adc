@@ -11,8 +11,8 @@
 //  ========== globals =====================================================================
 int16_t buf;
 static const struct adc_dt_spec adc_channel = ADC_DT_SPEC_GET(DT_PATH(zephyr_user));
-struct adc_sequence sequence = {
-    .channels = 0,
+static struct adc_sequence sequence = {
+    .channels = 1,
 	.buffer = &buf,
 	.buffer_size = sizeof(buf),
 };
@@ -20,25 +20,26 @@ struct adc_sequence sequence = {
 //  ========== app_nrf52_adc_init ==========================================================
 int8_t app_nrf52_adc_init()
 {
-    int8_t err;
+    int8_t ret = 0;
 
     if (!adc_is_ready_dt(&adc_channel)) {
-		printk("ADC is not ready. error: %d\n", err);
+		printk("ADC is not ready. error: %d\n", ret);
 		return 0;
-        printk("- found device \"%s\", getting sensor data\n", adc_channel.dev->name);
+	} else {
+        printk("- found device \"%s\", getting vbat data\n", adc_channel.dev->name);
     }
 
     // setup ADC channel
-    err = adc_channel_setup_dt(&adc_channel);
-	if (err < 0) {
-		printk("error: %d. could not setup channel\n", err);
+    ret = adc_channel_setup_dt(&adc_channel);
+	if (ret < 0) {
+		printk("could not setup channel. error: %d\n", ret);
 		return 0;
 	}
 
     // initializing ADC sequence
-    err = adc_sequence_init_dt(&adc_channel, &sequence);
-	if (err < 0) {
-		printk("error: %d. could not initalize sequnce\n", err);
+    ret = adc_sequence_init_dt(&adc_channel, &sequence);
+	if (ret < 0) {
+		printk("could not initalize sequnce. error: %d\n", ret);
 		return 0;
 	}
     return 0;
@@ -47,25 +48,21 @@ int8_t app_nrf52_adc_init()
 //  ========== app_nrf52_get_adc ===========================================================
 int16_t app_nrf52_get_adc()
 {
-    int16_t val_mv;
+    int16_t velocity;
     int8_t ret;
-
-    val_mv = (int)buf;
     
-    // reading sample from the ADC
+    // read sample from the ADC
     ret = adc_read(adc_channel.dev, &sequence);
-    if (ret < 0 ) {        
-	    printk("sensor sample is not up to date. error: %d\n", ret);
+    if (ret < 0) {        
+	    printk("raw adc value is not up to date. error: %d\n", ret);
 	    return 0;
     }
 
-    // analog level received and converted from channel get
-    // resolution 12bits: 0 to 4095 (uint16)
-    ret = adc_raw_to_millivolts_dt(&adc_channel, &val_mv);
-    if (ret < 0) {
-			printk("value in mV not available. error: %d\n", ret);
-		} else {
-			printk("adc: %d mV\n", val_mv);
-		}
-    return val_mv;
+    printk("raw adc value: %d\n", buf);
+
+    // convert ADC reading to voltage
+    velocity = (buf * ADC_REFERENCE_VOLTAGE) / ADC_RESOLUTION;
+    printk("velocity: %d mV\n", velocity);
+
+    return (int16_t)velocity;
 }
