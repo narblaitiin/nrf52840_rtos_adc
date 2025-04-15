@@ -19,7 +19,7 @@
 #define SPI_FLASH_OFFSET		0x00000
 #define SPI_FLASH_SECTOR_SIZE	4096
 #define SPI_FLASH_PAGE_SIZE     8192
-#define MAX_RECORDS             10      // just for test!                             
+#define MAX_RECORDS             10      // just for test!                         
 
 //  ========== prototypes ==================================================================
 int8_t app_eeprom_init(const struct device *dev);

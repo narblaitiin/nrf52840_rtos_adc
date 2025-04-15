@@ -75,11 +75,11 @@ int16_t app_eeprom_read(const struct device *dev)
 	return data;
 }
 
-//  ======== app_rom_handler =======================================
+//  ======== app_rom_handler ===============================================================
 int8_t app_eeprom_handler(const struct device *dev)
 {
 	int8_t ret = 0;
-	int16_t data[MAX_RECORDS];
+	int16_t data[MAX_RECORDS] = {0};
 	int16_t high, low;
 	int32_t timestamp;
 	const struct device *rtc;
@@ -87,7 +87,7 @@ int8_t app_eeprom_handler(const struct device *dev)
 	// initialize EEPROM device using device tree specification
 	dev = DEVICE_DT_GET(SPI_FLASH_DEVICE);
 
-	//iInitialize DS3231 RTC device via I2C (Pins: SDA -> P0.09, SCL -> P0.0)
+	// initialize DS3231 RTC device via I2C (Pins: SDA -> P0.09, SCL -> P0.0)
     rtc = DEVICE_DT_GET_ONE(maxim_ds3231);
 
 	// retrieve the current timestamp from the RTC device 
