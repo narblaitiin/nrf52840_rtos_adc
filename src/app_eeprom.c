@@ -54,8 +54,6 @@ int8_t app_eeprom_write(const struct device *dev, int16_t data)
 		printk("successfully wrote %zu bytes to address 0x00\n", sizeof(data));
 	}
 
-	// log the written data value
-	printk("wrt -> rom val: %d\n", data);
 	return 0;
 }
 
@@ -74,10 +72,6 @@ int16_t app_eeprom_read(const struct device *dev)
 		printk("successfully read %zu bytes from address 0x00\n", sizeof(data));
 	}
 
-	// iterate through the data array and log the value of each record
-	for (int8_t i = 0; i < MAX_RECORDS; i++) {
-		printk("rd -> rom val: %d\n", data[i]);
-	}
 	return data;
 }
 
