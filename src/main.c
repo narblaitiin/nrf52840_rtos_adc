@@ -32,14 +32,14 @@ int8_t main(void)
 	const struct device *rom_dev;
 	const struct device *rtc_dev;
 
-	// setup eeprom device
+	// initialize all devices
 	app_eeprom_init(rom_dev);
 	app_rtc_init(rtc_dev);
 	app_nrf52_adc_init();
 
 	printk("ADC nRF52 and RTC DS3231 Example\nBoard: %s\n", CONFIG_BOARD);
 
-	// beginning of interrupt subroutine
+	// start the timer to trigger the interrupt subroutine every 30 seconds
 	k_timer_start(&geo_timer, K_NO_WAIT, K_MSEC(30000));
 	
 	return 0;
