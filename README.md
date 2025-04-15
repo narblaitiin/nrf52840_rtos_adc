@@ -18,4 +18,4 @@ west build -t pristine
 
 west build -p always -b mdbt50q_lora_dev applications/nrf52840_rtos_adc
 
-west flash --runner pyocd
+west flash --runner jlink
