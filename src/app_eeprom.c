@@ -31,7 +31,7 @@ int8_t app_eeprom_init(const struct device *dev)
     }
 
 	// erase the data storage partition
-	ret = flash_erase(dev, SPI_FLASH_OFFSET, SPI_FLASH_SECTOR_SIZE*SPI_FLASH_PAGE_SIZE);
+	ret = flash_erase(dev, SPI_FLASH_OFFSET, SPI_FLASH_SECTOR_SIZE*SPI_FLASH_SECTOR_NB);
 	if (ret != 0){
 		printf("MX25R64 flash erase failed. error: %d\n", ret);
 	} else {
@@ -122,7 +122,7 @@ int8_t app_eeprom_handler(const struct device *dev)
 		printk("rd -> adc value: %d\n", data[itr]);
    }
 	// erase the data storage partition in the EEPROM
-	(void)flash_erase(dev, SPI_FLASH_OFFSET, SPI_FLASH_SECTOR_SIZE*SPI_FLASH_PAGE_SIZE);
+	(void)flash_erase(dev, SPI_FLASH_OFFSET, MAX_RECORDS);
 	return 0;
 }
 

@@ -17,9 +17,10 @@
 //  ========== defines =====================================================================
 #define SPI_FLASH_DEVICE        DT_COMPAT_GET_ANY_STATUS_OKAY(nordic_qspi_nor)
 #define SPI_FLASH_OFFSET		0x00000
-#define SPI_FLASH_SECTOR_SIZE	4096
-#define SPI_FLASH_PAGE_SIZE     8192
-#define MAX_RECORDS             2      // just for test!                         
+#define SPI_FLASH_SECTOR_SIZE	4096   // in bytes
+#define SPI_FLASH_SECTOR_NB     2048
+#define MAX_RECORDS             5    // 5 of these structures 1 page : 30 bytes  
+// #define MAX_RECORDS             692    // 6 of these structures 1 page : 4094 bytes                      
 
 //  ========== prototypes ==================================================================
 int8_t app_eeprom_init(const struct device *dev);
