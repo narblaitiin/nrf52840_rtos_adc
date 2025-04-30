@@ -13,7 +13,7 @@
 //  ========== interrupt sub-routine =======================================================
 void geo_work_handler(struct k_work *work_geo)
 {
-	const struct device *rom_dev;
+	const struct device *rom_dev = DEVICE_DT_GET(SPI_FLASH_DEVICE);
 
 	printk("ADC handler called\n");
 	app_eeprom_handler(rom_dev);
@@ -29,14 +29,29 @@ K_TIMER_DEFINE(geo_timer, geo_timer_handler, NULL);
 // ========== main ========================================================================
 int8_t main(void)
 {
-//	const struct device *rom_dev;
+	// initialize DS3231 RTC device via I2C (Pins: SDA -> P0.09, SCL -> P0.0)
 	const struct device *rtc_dev = app_rtc_init();
+    if (!rtc_dev) {
+        printk("failed to initialize RTC device\n");
+        return 0;
+    }
 
-	// initialize all devices
-//	app_eeprom_init(rom_dev);
-//	app_nrf52_adc_init();
+	// initialize ADC device
+	int8_t ret = app_nrf52_adc_init();
+	if (ret != 1) {
+		printk("failed to initialize ADC device");
+		return 0;
+	}
 
-	printk("ADC nRF52 and RTC DS3231 Example\nBoard: %s\n", CONFIG_BOARD);
+	// retrieve the EEPROM device
+	const struct device *flash_dev = DEVICE_DT_GET(SPI_FLASH_DEVICE);
+	ret = app_eeprom_init(flash_dev);
+	if (ret != 1) {
+		printk("failed to initialize QSPI Flash device\n");
+		return 0;
+	}
+
+	printk("ADC nRF52 and RTC DS3231 Example\n");
 
 	// start the timer to trigger the interrupt subroutine every 30 seconds
 	k_timer_start(&geo_timer, K_NO_WAIT, K_MSEC(10000));

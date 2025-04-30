@@ -25,16 +25,14 @@ static struct adc_sequence sequence = {
 //  ========== app_nrf52_adc_init ==========================================================
 int8_t app_nrf52_adc_init()
 {
-    int8_t ret = 0;
+    int8_t ret;
 
     // verify if the ADC is ready for operation
     if (!adc_is_ready_dt(&adc_channel)) {
 		printk("ADC is not ready. error: %d\n", ret);
 		return 0;
-	} else {
-        printk("- found device \"%s\", getting vbat data\n", adc_channel.dev->name);
     }
-
+    
     // configure the ADC channel settings
     ret = adc_channel_setup_dt(&adc_channel);
 	if (ret < 0) {
@@ -48,7 +46,7 @@ int8_t app_nrf52_adc_init()
 		printk("failed to initialize ADC sequence. error: %d\n", ret);
 		return 0;
 	}
-    return 0;
+    return 1;
 }
 
 //  ========== app_nrf52_get_adc ===========================================================
