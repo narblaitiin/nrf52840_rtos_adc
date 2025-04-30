@@ -88,41 +88,58 @@ int8_t app_eeprom_handler(const struct device *dev)
 	dev = DEVICE_DT_GET(SPI_FLASH_DEVICE);
 
 	// initialize DS3231 RTC device via I2C (Pins: SDA -> P0.09, SCL -> P0.0)
-    rtc = DEVICE_DT_GET_ONE(maxim_ds3231);
+    const struct device *rtc_dev = app_rtc_init();
+    if (!rtc_dev) {
+        printk("Failed to initialize RTC device");
+        return;
+    }
 
 	// retrieve the current timestamp from the RTC device 
-	timestamp = app_rtc_get_time(rtc);
+	struct tm new_time = {
+        .tm_sec = 0,
+        .tm_min = 0,
+        .tm_hour = 12,
+        .tm_mday = 30,
+        .tm_mon = 3,   // April (0-based)
+        .tm_year = 125, // 2025 (since 1900)
+        .tm_wday = 3    // Wednesday
+    };
 
-	// store the timestamp in the first page of the EEPROM
-    // extract the high 16 bits of the timestamp and write them to EEPROM
-    high = (int16_t)((timestamp >> 16) & 0xFFFF);
-    app_eeprom_write(dev, high);
+    if (app_rtc_set_time(rtc_dev, &new_time) == 0) {
+        struct tm current_time;
+        timestamp = app_rtc_get_time(rtc_dev, &current_time);
+    }
 
-    // extract the low 16 bits of the timestamp and write them to EEPROM
-    low = (int16_t)(timestamp & 0xFFFF);
-	app_eeprom_write(dev, low);
+// 	// store the timestamp in the first page of the EEPROM
+//     // extract the high 16 bits of the timestamp and write them to EEPROM
+//     high = (int16_t)((timestamp >> 16) & 0xFFFF);
+//     app_eeprom_write(dev, high);
+
+//     // extract the low 16 bits of the timestamp and write them to EEPROM
+//     low = (int16_t)(timestamp & 0xFFFF);
+// 	app_eeprom_write(dev, low);
 	
-	// store multiple ADC readings in the first page of the EEPROM
-	for (int8_t itr; itr < MAX_RECORDS; itr++) {
-		data[itr] = app_nrf52_get_adc();
-		app_eeprom_write(dev, data);
-	}
+// 	// store multiple ADC readings in the first page of the EEPROM
+// 	for (int8_t itr; itr < MAX_RECORDS; itr++) {
+// 		data[itr] = app_nrf52_get_adc();
+// 		app_eeprom_write(dev, data);
+// 	}
 
-	// read back stored data from the EEPROM for verification
-	for (int8_t itr = 0; itr < MAX_RECORDS; itr++) {
-	 	data[itr] = app_eeprom_read(dev);
-	}
+// 	// read back stored data from the EEPROM for verification
+// 	for (int8_t itr = 0; itr < MAX_RECORDS; itr++) {
+// 	 	data[itr] = app_eeprom_read(dev);
+// 	}
 
-	// reconstruct the timestamp from the first two EEPROM entries
-	int32_t num = ((int32_t)data[0] << 16) | (int32_t)data[1];
-		printk("rd -> timestamp: %d\n", num);
+// 	// reconstruct the timestamp from the first two EEPROM entries
+// 	int32_t num = ((int32_t)data[0] << 16) | (int32_t)data[1];
+// 		printk("rd -> timestamp: %d\n", num);
 
-	// print the remaining ADC values read from the EEPROM	
-	for (int8_t itr = 2; itr < MAX_RECORDS; itr++) {
-		printk("rd -> adc value: %d\n", data[itr]);
-   }
-	// erase the data storage partition in the EEPROM
-	(void)flash_erase(dev, SPI_FLASH_OFFSET, MAX_RECORDS);
+// 	// print the remaining ADC values read from the EEPROM	
+// 	for (int8_t itr = 2; itr < MAX_RECORDS; itr++) {
+// 		printk("rd -> adc value: %d\n", data[itr]);
+//    }
+// 	// erase the data storage partition in the EEPROM
+// 	(void)flash_erase(dev, SPI_FLASH_OFFSET, MAX_RECORDS);
 	return 0;
 }
 
