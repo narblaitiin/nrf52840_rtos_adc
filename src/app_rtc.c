@@ -8,61 +8,51 @@
 //  ========== includes ====================================================================
 #include "app_rtc.h"
 
-//  ========== bcd_to_decimal ==============================================================
-uint8_t bcd_to_decimal(uint8_t val) {
-    return ((val / 16) * 10) + (val % 16);
-}
-
-//  ========== decimal_to_bcd ==============================================================
-uint8_t decimal_to_bcd(uint8_t val) {
-    return ((val / 10) << 4) | (val % 10);
-}
-
 //  ========== app_rtc_set_time ============================================================
-int8_t app_rtc_set_time(const struct device *i2c_dev, const struct tm *date_time)
+int64_t app_rtc_set_time(const struct device *i2c_dev, const struct tm *date_time)
 {
-    uint8_t time_data[7] = {
-        decimal_to_bcd(date_time->tm_sec),       // seconds
-        decimal_to_bcd(date_time->tm_min),       // minutes
-        decimal_to_bcd(date_time->tm_hour),      // hours
-        decimal_to_bcd(date_time->tm_wday),      // day of the week (1 = Sunday)
-        decimal_to_bcd(date_time->tm_mday),      // day of the month
-        decimal_to_bcd(date_time->tm_mon + 1),   // month (1-based)
-        decimal_to_bcd(date_time->tm_year - 100) // year (since 2000)
-    };
+    uint32_t counter_value = 0;
 
-    int ret = i2c_burst_write(i2c_dev, DS3231_I2C_ADDR, 0x00, time_data, 7);
-    if (ret < 0) {
-        printk("failed to set RTC time. error %d\n", ret);
+    int8_t ret = counter_get_value(i2c_dev, &counter_value);
+    if (ret) {
+        printk("error setting RTC time. error: %d\n", ret);
+        return 0;
     }
 
-    printk("RTC time set successfully\n");
-    return 0;
+    // convert struct tm to Unix timestamp
+    time_t timestamp = timegm(date_time);
+
+    /* Update the offset to align the current RTC value with the new time */
+    int64_t time_offset = timestamp - counter_value;
+    printk("RTC time set successfully. offset: %lld seconds\n");
+
+    return time_offset;
 }
 
 //  ========== app_rtc_get_time ============================================================
-int32_t app_rtc_get_time(const struct device *i2c_dev, struct tm *date_time)
+int32_t app_rtc_get_time(const struct device *i2c_dev, int64_t offset)
 {
-    uint8_t rtc_data[7];
-    int ret = i2c_burst_read(i2c_dev, DS3231_I2C_ADDR, 0x00, rtc_data, sizeof(rtc_data));
-    if (ret < 0) {
-        printk("failed to read RTC registers. error: %d", ret);
-        return ret;
+    uint32_t counter_value;
+
+    // get the current counter value in seconds
+    int8_t ret = counter_get_value(i2c_dev, &counter_value);
+    if (ret) {
+        printk("failed to get RTC time. error: %d\n", ret);
+        return 0;
     }
 
-    date_time->tm_sec = bcd_to_decimal(rtc_data[0]);
-    date_time->tm_min = bcd_to_decimal(rtc_data[1]);
-    date_time->tm_hour = bcd_to_decimal(rtc_data[2]);
-    date_time->tm_wday = bcd_to_decimal(rtc_data[3]);
-    date_time->tm_mday = bcd_to_decimal(rtc_data[4]);
-    date_time->tm_mon = bcd_to_decimal(rtc_data[5]) - 1; // Months are 0-based
-    date_time->tm_year = bcd_to_decimal(rtc_data[6]) + 100; // Years since 1900
+    // adjust the counter value with the offset
+    time_t unix_timestamp = counter_value + offset;
+    
+    // convert Unix timestamp to struct tm
+    struct tm *current_time = gmtime(&unix_timestamp);
+    
+    printk("current date and time: %04d-%02d-%02d %02d:%02d:%02d\n",
+            current_time->tm_year + 1900, current_time->tm_mon + 1, current_time->tm_mday,
+            current_time->tm_hour, current_time->tm_min, current_time->tm_sec);
 
-    int32_t timestamp = (int32_t)mktime(date_time);
-    printk("current date and time: %04d-%02d-%02d %02d:%02d:%02d",
-            date_time->tm_year + 1900, date_time->tm_mon + 1, date_time->tm_mday,
-            date_time->tm_hour, date_time->tm_min, date_time->tm_sec);
-    printk("unix timestamp: %d", timestamp);
+    int32_t timestamp = (int32_t)mktime(current_time);
+    printk("unix timestamp: %d\n", timestamp);
 
     return timestamp;
 }
@@ -70,7 +60,8 @@ int32_t app_rtc_get_time(const struct device *i2c_dev, struct tm *date_time)
 //  ========== app_rtc_init ================================================================
 const struct device *app_rtc_init(void)
 {
-    const struct device *rtc_dev = DEVICE_DT_GET_ONE(maxim_ds3231);
+ //   const struct device *rtc_dev = DEVICE_DT_GET_ONE(maxim_ds3231);
+    const struct device *rtc_dev = DEVICE_DT_GET(DT_NODELABEL(rtc0));
     if (!rtc_dev) {
         printk("no RTC device found");
         return NULL;

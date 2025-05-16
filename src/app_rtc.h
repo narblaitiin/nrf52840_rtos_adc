@@ -13,6 +13,7 @@
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/i2c.h>
+#include <zephyr/drivers/rtc.h>
 #include <zephyr/drivers/counter.h>
 #include <time.h>
 
@@ -21,9 +22,7 @@
 
 //  ========== prototypes ==================================================================
 const struct device *app_rtc_init(void);
-int8_t app_rtc_set_time(const struct device *i2c_dev, const struct tm *date_time);
-int32_t app_rtc_get_time(const struct device *i2c_dev, struct tm *date_time);
-uint8_t bcd_to_decimal(uint8_t val);
-uint8_t decimal_to_bcd(uint8_t val);
+int64_t app_rtc_set_time(const struct device *i2c_dev, const struct tm *date_time);
+int32_t app_rtc_get_time(const struct device *i2c_dev, int64_t offset);
 
 #endif /* APP_RTC_H */

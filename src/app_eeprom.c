@@ -65,7 +65,7 @@ int16_t app_eeprom_read(const struct device *dev)
 }
 
 //  ======== app_rom_handler ===============================================================
-int8_t app_eeprom_handler(const struct device *dev)
+int8_t app_eeprom_handler(const struct device *dev, int64_t offset)
 {
 	int16_t data[MAX_RECORDS] = {0};
 	const struct device *rtc;
@@ -80,26 +80,12 @@ int8_t app_eeprom_handler(const struct device *dev)
 	// initialize DS3231 RTC device via I2C (Pins: SDA -> P0.09, SCL -> P0.0)
     const struct device *rtc_dev = app_rtc_init();
     if (!rtc_dev) {
-        printk("Failed to initialize RTC device");
+        printk("failed to initialize RTC device\n");
         return 0;
     }
 
-	// retrieve the current timestamp from the RTC device 
-	struct tm new_time = {
-        .tm_sec = 0,
-        .tm_min = 0,
-        .tm_hour = 12,
-        .tm_mday = 30,
-        .tm_mon = 3,   // April (0-based)
-        .tm_year = 125, // 2025 (since 1900)
-        .tm_wday = 3    // Wednesday
-    };
-
-    if (app_rtc_set_time(rtc_dev, &new_time) == 0) {
-        struct tm current_time;
-        timestamp = app_rtc_get_time(rtc_dev, &current_time);
-    }
-
+    timestamp = app_rtc_get_time(rtc_dev, offset);
+    
 	// store the timestamp in the first page of the EEPROM
     // extract the high 16 bits of the timestamp and write them to EEPROM
     int16_t high = (int16_t)((timestamp >> 16) & 0xFFFF);
