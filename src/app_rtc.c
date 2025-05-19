@@ -8,52 +8,66 @@
 //  ========== includes ====================================================================
 #include "app_rtc.h"
 
+//  ========== bcd_to_decimal ==============================================================
+uint8_t bcd_to_decimal(uint8_t val) {
+    return ((val / 16) * 10) + (val % 16);
+}
+
+//  ========== decimal_to_bcd ==============================================================
+uint8_t decimal_to_bcd(uint8_t val) {
+    return ((val / 10) << 4) | (val % 10);
+}
+
 //  ========== app_rtc_set_time ============================================================
-// int64_t app_rtc_set_time(const struct device *i2c_dev, const struct tm *date_time)
-// {
-//     uint32_t counter_value = 0;
+int8_t app_rtc_set_time(const struct device *i2c_dev, const struct tm *date_time)
+{
+    uint8_t time_data[7] = {
+        decimal_to_bcd(date_time->tm_sec),       // seconds
+        decimal_to_bcd(date_time->tm_min),       // minutes
+        decimal_to_bcd(date_time->tm_hour),      // hours
+        decimal_to_bcd(date_time->tm_mday),      // day of the month
+        decimal_to_bcd(date_time->tm_mon + 1),   // month (1-based)
+        decimal_to_bcd(date_time->tm_year - 100) // year (since 2000)
+    };
 
-//     int8_t ret = counter_get_value(i2c_dev, &counter_value);
-//     if (ret) {
-//         printk("error setting RTC time. error: %d\n", ret);
-//         return 0;
-//     }
+    int8_t ret = i2c_burst_write(i2c_dev, DS3231_I2C_ADDR, 0x00, time_data, 7);
+    if (ret < 0) {
+        printk("failed to set RTC time. error %d\n", ret);
+    }
 
-//     // convert struct tm to Unix timestamp
-//     time_t timestamp = timegm(date_time);
-
-//     /* Update the offset to align the current RTC value with the new time */
-//     int64_t time_offset = timestamp - counter_value;
-//     printk("RTC time set successfully. offset: %lld seconds\n");
-
-//     return time_offset;
-// }
+    printk("RTC time set successfully\n");
+    return 1;
+}
 
 //  ========== app_rtc_get_time ============================================================
 int32_t app_rtc_get_time(const struct device *i2c_dev)
 {
     int8_t ret = 0;
 	int32_t timestamp = 0;
-	struct rtc_time time = {0};
+    uint8_t rtc_data[7];
 
 	// convert rtc_time to Unix timestamp (seconds since 1970)
-    struct tm t = {
-        .tm_year = time.tm_year,
-        .tm_mon  = time.tm_mon,
-        .tm_mday = time.tm_mday,
-        .tm_hour = time.tm_hour,
-        .tm_min  = time.tm_min,
-        .tm_sec  = time.tm_sec
-    };
+    struct tm time;
 
-    ret = rtc_get_time(i2c_dev, &time);
-	if (ret < 0) {
-		printk("cannot read date time: %d\n", ret);
-		return ret;
-	}
+    ret = i2c_burst_read(i2c_dev, DS3231_I2C_ADDR, 0x00, rtc_data, sizeof(rtc_data));
+    if (ret < 0) {
+        printk("failed to read RTC registers. error: %d", ret);
+        return ret;
+    }
+
+    time.tm_sec = bcd_to_decimal(rtc_data[0]);
+    time.tm_min = bcd_to_decimal(rtc_data[1]);
+    time.tm_hour = bcd_to_decimal(rtc_data[2]);
+    time.tm_mday = bcd_to_decimal(rtc_data[4]);
+    time.tm_mon = bcd_to_decimal(rtc_data[5]) - 1; // Months are 0-based
+    time.tm_year = bcd_to_decimal(rtc_data[6]) + 100; // Years since 1900
+
+    printk("current date and time: %04d-%02d-%02d %02d:%02d:%02d\n",
+            time.tm_year + 1900, time.tm_mon + 1, time.tm_mday,
+            time.tm_hour, time.tm_min, time.tm_sec);
 
 	// convert to Unix timestamp
-	timestamp = (int32_t)mktime(&t);
+	timestamp = (int32_t)mktime(&time);
 	printk("timestamp in unix: %d\n", timestamp);
 
     return timestamp;

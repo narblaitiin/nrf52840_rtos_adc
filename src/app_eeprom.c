@@ -68,7 +68,6 @@ int16_t app_eeprom_read(const struct device *dev)
 int8_t app_eeprom_handler(const struct device *dev)
 {
 	int16_t data[MAX_RECORDS] = {0};
-	const struct device *rtc;
 	int32_t timestamp = 0;
 
 	// check if the EEPROM device is ready
