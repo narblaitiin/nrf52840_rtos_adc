@@ -26,6 +26,6 @@
 int8_t app_eeprom_init(const struct device *dev);
 int8_t app_eeprom_write(const struct device *dev, int16_t data);
 int16_t app_eeprom_read(const struct device *dev);
-int8_t app_eeprom_handler(const struct device *dev, int64_t offset);
+int8_t app_eeprom_handler(const struct device *dev);
 
 #endif /* APP_EEPROM_H */

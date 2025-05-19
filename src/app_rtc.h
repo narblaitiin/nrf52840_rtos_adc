@@ -22,7 +22,7 @@
 
 //  ========== prototypes ==================================================================
 const struct device *app_rtc_init(void);
-int64_t app_rtc_set_time(const struct device *i2c_dev, const struct tm *date_time);
-int32_t app_rtc_get_time(const struct device *i2c_dev, int64_t offset);
+//int64_t app_rtc_set_time(const struct device *i2c_dev, const struct tm *date_time);
+int32_t app_rtc_get_time(const struct device *i2c_dev);
 
 #endif /* APP_RTC_H */

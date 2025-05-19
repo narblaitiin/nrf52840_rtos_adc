@@ -13,18 +13,9 @@
 //  ========== interrupt sub-routine =======================================================
 void geo_work_handler(struct k_work *work_geo)
 {
-// 	const struct device *rom_dev = DEVICE_DT_GET(SPI_FLASH_DEVICE);
- 	const struct device *rtc_dev = DEVICE_DT_GET(DT_NODELABEL(rtc0));
+ 	const struct device *rom_dev = DEVICE_DT_GET(SPI_FLASH_DEVICE);
+ 	const struct device *rtc_dev = DEVICE_DT_GET_ONE(maxim_ds3231);
 
-	struct tm date_time = {
-    	.tm_year = 2025 - 1900, // Years since 1900
-        .tm_mon = 5 - 1,        // Months since January (0-11)
-        .tm_mday = 16,          // Day of the month
-        .tm_hour = 12,
-        .tm_min = 0,
-        .tm_sec = 0,
-	};
-	
  	// printk("ADC handler called\n");
  	// app_eeprom_handler(rom_dev);
 
@@ -33,8 +24,7 @@ void geo_work_handler(struct k_work *work_geo)
  	// printk("return velocity: %d mV\n", value);
 
 	printk("test only internal RTC device\n");
-	int64_t time_offset = app_rtc_set_time(rtc_dev, &date_time);
-	(void)app_rtc_get_time(rtc_dev, time_offset);
+	(void)app_rtc_get_time(rtc_dev);
 }
 K_WORK_DEFINE(geo_work, geo_work_handler);
 
@@ -59,11 +49,11 @@ int8_t main(void)
 	}
 
 	// initialize ADC device
-	// int8_t ret = app_nrf52_adc_init();
-	// if (ret != 1) {
-	// 	printk("failed to initialize ADC device\n");
-	// 	return 0;
-	// }
+	ret = app_nrf52_adc_init();
+	if (ret != 1) {
+		printk("failed to initialize ADC device\n");
+		return 0;
+	}
 
 	// retrieve the EEPROM device
 	// const struct device *flash_dev = DEVICE_DT_GET(SPI_FLASH_DEVICE);

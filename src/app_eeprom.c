@@ -65,7 +65,7 @@ int16_t app_eeprom_read(const struct device *dev)
 }
 
 //  ======== app_rom_handler ===============================================================
-int8_t app_eeprom_handler(const struct device *dev, int64_t offset)
+int8_t app_eeprom_handler(const struct device *dev)
 {
 	int16_t data[MAX_RECORDS] = {0};
 	const struct device *rtc;
@@ -84,7 +84,7 @@ int8_t app_eeprom_handler(const struct device *dev, int64_t offset)
         return 0;
     }
 
-    timestamp = app_rtc_get_time(rtc_dev, offset);
+    timestamp = app_rtc_get_time(rtc_dev);
     
 	// store the timestamp in the first page of the EEPROM
     // extract the high 16 bits of the timestamp and write them to EEPROM
