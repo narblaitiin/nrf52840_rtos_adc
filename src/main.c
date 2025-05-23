@@ -25,7 +25,9 @@ void geo_work_handler(struct k_work *work_geo)
  	// printk("return velocity: %d mV\n", value);
 
 	printk("test only internal RTC device\n");
-	(void)app_rtc_get_time(rtc_dev);
+	uint64_t timestamp = get_high_res_timestamp();  // Pass the address of 'timestamp'
+    printf("High-resolution timestamp: %llu ms\n", timestamp);
+	// (void)app_rtc_get_time(rtc_dev);
 }
 K_WORK_DEFINE(geo_work, geo_work_handler);
 
