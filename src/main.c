@@ -25,9 +25,9 @@ void geo_work_handler(struct k_work *work_geo)
  	// printk("return velocity: %d mV\n", value);
 
 	printk("test only internal RTC device\n");
-	uint64_t timestamp = get_high_res_timestamp();  // Pass the address of 'timestamp'
+	//uint64_t timestamp = get_high_res_timestamp(rtc_dev);  // Pass the address of 'timestamp'
+	uint64_t timestamp = app_rtc_get_time(rtc_dev);
     printf("High-resolution timestamp: %llu ms\n", timestamp);
-	// (void)app_rtc_get_time(rtc_dev);
 }
 K_WORK_DEFINE(geo_work, geo_work_handler);
 
@@ -53,6 +53,7 @@ int8_t main(void)
 		printk("failed to initialize ADC device\n");
 		return 0;
 	}
+
 	const struct tm date_time = {
     	.tm_year = 2025 - 1900, // years since 1900
         .tm_mon = 5 - 1,        // months since January (0-11)
@@ -69,17 +70,17 @@ int8_t main(void)
 	}
 
 	// retrieve the EEPROM device
-	// const struct device *flash_dev = DEVICE_DT_GET(SPI_FLASH_DEVICE);
-	// ret = app_eeprom_init(flash_dev);
-	// if (ret != 1) {
-	// 	printk("failed to initialize QSPI Flash device\n");
-	// 	return 0;
-	// }
+	const struct device *flash_dev = DEVICE_DT_GET(SPI_FLASH_DEVICE);
+	ret = app_eeprom_init(flash_dev);
+	if (ret != 1) {
+		printk("failed to initialize QSPI Flash device\n");
+		return 0;
+	}
 
 	printk("ADC nRF52 and RTC DS3231 Example\n");
 
 	// start the timer to trigger the interrupt subroutine every 30 seconds
-	k_timer_start(&geo_timer, K_NO_WAIT, K_MSEC(30000));
+	k_timer_start(&geo_timer, K_NO_WAIT, K_MSEC(10000));
 
 	return 0;
 }
