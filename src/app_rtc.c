@@ -42,28 +42,33 @@ int8_t  sync_uptime_with_rtc(const struct device *i2c_dev)
         printk("failed to get time from RTC, %d\n", ret);
     }
 
+    printk("RTC time: year=%d, month=%d, day=%d, hour=%d, minute=%d, second=%d\n",
+       rtc_time.tm_year, rtc_time.tm_mon, rtc_time.tm_mday,
+       rtc_time.tm_hour, rtc_time.tm_min, rtc_time.tm_sec);
+
     // convert RTC time to Unix seconds
     int64_t rtc_unix_seconds = mktime(&rtc_time);
-    if (rtc_unix_seconds <= 0) {
-        printk("invalid RTC time: %lld seconds\n", rtc_unix_seconds);
-        return -1;
+    if (rtc_unix_seconds > 0) {
+        printk("RTC time: %lld seconds\n", rtc_unix_seconds);
+    } else {
+        printk("invalid RTC time\n");
     }
 
     // calculate current system uptime in milliseconds
     int64_t current_uptime_ms = k_uptime_get();
 
     // debugging logs for validation
-    printk("RTC Unix Seconds: %lld\n", rtc_unix_seconds);
-    printk("System Uptime (ms): %lld\n", current_uptime_ms);
+    printk("RTC unix seconds: %lld\n", rtc_unix_seconds);
+    printk("system uptime (ms): %lld\n", current_uptime_ms);
 
     // calculate the offset between the RTC and the system clock
     system_rtc_offset_ms = (rtc_unix_seconds * 1000LL) - current_uptime_ms;
 
     // debugging offset
-    printk("calculated Offset (ms): %lld\n", system_rtc_offset_ms);
+    printk("calculated offset (ms): %lld\n", system_rtc_offset_ms);
 
     if (system_rtc_offset_ms < -31536000000LL || system_rtc_offset_ms > 31536000000LL) {
-        printk("offset out of range! Likely calculation error.\n");
+        printk("offset out of range! calculation error\n");
         system_rtc_offset_ms = 0; // reset offset to prevent incorrect timestamps
     }
 }
