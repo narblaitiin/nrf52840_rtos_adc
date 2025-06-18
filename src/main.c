@@ -22,7 +22,7 @@ void geo_work_handler(struct k_work *work_geo)
  	// int16_t value = app_nrf52_get_adc();
  	// printk("return velocity: %d mV\n", value);
 
-//	printk("test only internal RTC device\n");
+	printk("test only internal RTC device\n");
 	uint64_t timestamp =  app_rtc_get_time();  // Pass the address of 'timestamp'
 	printk("timestamp in ms: %llu\n", timestamp);
 }
@@ -43,8 +43,7 @@ int8_t main(void)
         printk("failed to initialize RTC device\n");
         return 0;
     }
-
-	sync_uptime_with_rtc(rtc_dev);
+	(void)app_rtc_periodic_sync(rtc_dev);
 
 	// initialize ADC device
 	// int8_t ret = app_nrf52_adc_init();
@@ -64,7 +63,7 @@ int8_t main(void)
 	printk("ADC nRF52 and RTC DS3231 Example\n");
 
 	// start the timer to trigger the interrupt subroutine every 30 seconds
-//	k_timer_start(&geo_timer, K_NO_WAIT, K_MSEC(1000));
+	k_timer_start(&geo_timer, K_NO_WAIT, K_MSEC(10000));
 
 	return 0;
 }
