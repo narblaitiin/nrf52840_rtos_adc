@@ -64,6 +64,5 @@ int8_t main(void)
 
 	// start the timer to trigger the interrupt subroutine every 30 seconds
 	k_timer_start(&geo_timer, K_NO_WAIT, K_MSEC(10000));
-
 	return 0;
 }
