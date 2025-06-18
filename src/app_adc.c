@@ -67,6 +67,5 @@ int16_t app_nrf52_get_adc()
     // convert the raw ADC reading into a voltage value (in millivolts)
     velocity = (buf * ADC_REFERENCE_VOLTAGE) / ADC_RESOLUTION;
     printk("velocity: %d mV\n", velocity);
-
     return (int16_t)velocity;
 }
