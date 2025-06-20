@@ -16,7 +16,8 @@ static struct k_mutex offset_mutex;
 //  ========== app_rtc_init ================================================================
 const struct device *app_rtc_init(void)
 {
-    const struct device *rtc_dev = DEVICE_DT_GET_ONE(maxim_ds3231);
+    //const struct device *rtc_dev = DEVICE_DT_GET_ONE(maxim_ds3231);
+    const struct device *rtc_dev = DEVICE_DT_GET(DT_NODELABEL(rtc0));
     if (!rtc_dev) {
         printk("no RTC device found\n");
         return NULL;
@@ -26,6 +27,22 @@ const struct device *app_rtc_init(void)
         printk("RTC device is not ready\n");
         return NULL;
     }
+    
+    const struct rtc_time tm = {
+        .tm_year = 2025,
+        .tm_mon  = 6,
+        .tm_mday = 19,
+        .tm_hour = 12,
+        .tm_min  = 0,
+        .tm_sec  = 0,
+    };
+    int8_t ret = rtc_set_time(rtc_dev, &tm);
+    if (ret < 0) {
+        printk("failed to get time from RTC, %d\n", ret);
+    }
+
+    printk("RTC set time: year=%d, month=%d, day=%d, hour=%d, minute=%d, second=%d\n",
+        tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 
     // initialize mute
     k_mutex_init(&offset_mutex);
@@ -46,7 +63,7 @@ int8_t  app_rtc_sync_uptime(const struct device *i2c_dev)
         printk("failed to get time from RTC, %d\n", ret);
     }
 
-    printk("RTC time: year=%d, month=%d, day=%d, hour=%d, minute=%d, second=%d\n",
+    printk("RTC get time: year=%d, month=%d, day=%d, hour=%d, minute=%d, second=%d\n",
        rtc_time.tm_year, rtc_time.tm_mon, rtc_time.tm_mday,
        rtc_time.tm_hour, rtc_time.tm_min, rtc_time.tm_sec);
 

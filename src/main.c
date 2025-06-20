@@ -43,26 +43,27 @@ int8_t main(void)
         printk("failed to initialize RTC device\n");
         return 0;
     }
+
 	(void)app_rtc_periodic_sync(rtc_dev);
 
 	// initialize ADC device
-	int8_t ret = app_nrf52_adc_init();
-	if (ret != 1) {
-		printk("failed to initialize ADC device\n");
-		return 0;
-	}
+	// int8_t ret = app_nrf52_adc_init();
+	// if (ret != 1) {
+	// 	printk("failed to initialize ADC device\n");
+	// 	return 0;
+	// }
 
 	// retrieve the EEPROM device
-	const struct device *flash_dev = DEVICE_DT_GET(SPI_FLASH_DEVICE);
-	ret = app_eeprom_init(flash_dev);
-	if (ret != 1) {
-		printk("failed to initialize QSPI Flash device\n");
-		return 0;
-	}
+	// const struct device *flash_dev = DEVICE_DT_GET(SPI_FLASH_DEVICE);
+	// ret = app_eeprom_init(flash_dev);
+	// if (ret != 1) {
+	// 	printk("failed to initialize QSPI Flash device\n");
+	// 	return 0;
+	// }
 
-	printk("ADC nRF52 and RTC DS3231 Example\n");
+	//printk("ADC nRF52 and RTC DS3231 Example\n");
 
 	// start the timer to trigger the interrupt subroutine every 30 seconds
-	k_timer_start(&geo_timer, K_NO_WAIT, K_MSEC(10000));
+	k_timer_start(&geo_timer, K_NO_WAIT, K_MSEC(100));
 	return 0;
 }
