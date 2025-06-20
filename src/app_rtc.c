@@ -36,6 +36,7 @@ const struct device *app_rtc_init(void)
         .tm_min  = 0,
         .tm_sec  = 0,
     };
+    
     int8_t ret = rtc_set_time(rtc_dev, &tm);
     if (ret < 0) {
         printk("failed to get time from RTC, %d\n", ret);
