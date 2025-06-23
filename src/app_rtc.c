@@ -31,7 +31,7 @@ const struct device *app_rtc_init(void)
     const struct rtc_time tm = {
         .tm_year = 2025,
         .tm_mon  = 6,
-        .tm_mday = 19,
+        .tm_mday = 24,
         .tm_hour = 12,
         .tm_min  = 0,
         .tm_sec  = 0,
