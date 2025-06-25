@@ -29,12 +29,15 @@ const struct device *app_rtc_init(void)
         return NULL;
     }
 
+    // initialize mute
+    k_mutex_init(&offset_mutex);
+
     printk("RTC initialized and started successfully\n");
     return rtc_dev;
 }
 
 //  ========== app_rtc_sync_uptime ========================================================
-// synchronize the system uptime with the DS3231 RTC.
+// synchronize the system uptime with the on board RTC.
 int8_t app_rtc_sync_uptime(const struct device *rtc_dev)
 {
     if (!rtc_dev) {
@@ -93,33 +96,33 @@ int8_t app_rtc_sync_uptime(const struct device *rtc_dev)
 //  ========== app_rtc_get_time ==========================================================
 uint64_t app_rtc_get_time(const struct device *rtc_dev)
 {
-    uint32_t rtc_ticks;
-    uint32_t top_value;
-    uint32_t frequency;
-    int64_t time_ms;
+    int64_t current_uptime_ms = k_uptime_get();
+    int64_t offset_ms;
 
-    // retrieve the current counter value
-    counter_get_value(rtc_dev, &rtc_ticks);
+    // safely read the offset
+    k_mutex_lock(&offset_mutex, K_FOREVER);
+    offset_ms = system_rtc_offset_ms;
+    k_mutex_unlock(&offset_mutex);
 
-    // get the counter's top value
-    top_value = counter_get_top_value(rtc_dev);
-
-    // get the frequency of the counter
-    frequency = counter_get_frequency(rtc_dev);
-
-    // calculate the time in milliseconds
-    time_ms = ((int64_t)rtc_ticks * 1000) / frequency;
-
-    printk("RTC time: %lld ms (ticks: %u, top: %u, freq: %u Hz)\n",
-           time_ms, rtc_ticks, top_value, frequency);
-
-    return time_ms;
+    // check for overflow or underflow
+    if (offset_ms > 0 &&
+        current_uptime_ms > UINT64_MAX - offset_ms) {
+        printk("overflow detected in timestamp calculation\n");
+        return UINT64_MAX;
+    }
+    if (offset_ms < 0 &&
+        current_uptime_ms < (uint64_t)(-offset_ms)) {
+        printk("underflow detected in timestamp calculation\n");
+        return 0;
+    }
+    uint64_t timestamp_ms = current_uptime_ms + offset_ms;
+    return timestamp_ms;
 }
 
 //  ========== app_rtc_periodic_sync====================================================
 int8_t app_rtc_periodic_sync(const struct device *rtc_dev)
 {
-    // example: call this periodically from a thread or workqueue
+    // call this periodically from a thread or workqueue
     int ret = app_rtc_sync_uptime(rtc_dev);
     if (ret < 0) {
         printk("periodic sync failed, error: %d", ret);
