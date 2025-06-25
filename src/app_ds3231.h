@@ -25,7 +25,5 @@ const struct device *app_ds3231_init(void);
 int8_t  app_ds3231_sync_uptime(const struct device *i2c_dev);
 uint64_t app_ds3231_get_time();
 int8_t app_ds3231_periodic_sync(const struct device *rtc_dev);
-uint8_t bcd_to_decimal(uint8_t val);
-uint8_t decimal_to_bcd(uint8_t val);
 
 #endif /* APP_DS3231_H */
