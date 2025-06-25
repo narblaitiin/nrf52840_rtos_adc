@@ -12,13 +12,11 @@
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
-//#include <zephyr/drivers/i2c.h>
 #include <zephyr/drivers/rtc.h>
 #include <zephyr/drivers/counter.h>
-#include <time.h>
 
 //  ========== defines =====================================================================
-#define DS3231_I2C_ADDR 0x68
+#define ONE_YEAR_MS         31536000000LL
 #define CONFIG_COUNTER_NRF_RTC
 
 //  ========== prototypes ==================================================================

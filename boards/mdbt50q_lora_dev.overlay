@@ -27,7 +27,3 @@
 		zephyr,resolution = <12>;
 	};
 };
-
-&rtc0 {
-	status = "okay";
-};

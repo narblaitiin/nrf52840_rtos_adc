@@ -61,9 +61,9 @@ int8_t main(void)
 	// 	return 0;
 	// }
 
-	//printk("ADC nRF52 and RTC DS3231 Example\n");
+	printk("ADC nRF52 and RTC DS3231 Example\n");
 
 	// start the timer to trigger the interrupt subroutine every 30 seconds
-	k_timer_start(&geo_timer, K_NO_WAIT, K_MSEC(100));
+	k_timer_start(&geo_timer, K_NO_WAIT, K_MSEC(1000));
 	return 0;
 }
