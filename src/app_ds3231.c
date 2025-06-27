@@ -85,7 +85,7 @@ struct tm rtc_time;
     // calculate the offset between the RTC and the system clock
     int64_t new_offset_ms = (rtc_unix_seconds * 1000LL) - current_uptime_ms;
 
-    if (new_offset_ms< -31536000000LL || new_offset_ms > 31536000000LL) {
+    if (new_offset_ms< -ONE_YEAR_MS  || new_offset_ms > ONE_YEAR_MS ) {
         printk("offset out of range! calculation error\n");
     }
 
@@ -128,8 +128,13 @@ uint64_t app_ds3231_get_time(void)
 //  ========== app_ds3231_periodic_sync====================================================
 int8_t app_ds3231_periodic_sync(const struct device *rtc_dev)
 {
+    if (!rtc_dev) {
+        printk("RTC device is NULL\n");
+        return -EINVAL;
+    }
+    
     // call this periodically from a thread or workqueue
-    int ret = app_ds3231_sync_uptime(rtc_dev);
+    int ret = app_rtc_sync_uptime(rtc_dev);
     if (ret < 0) {
         printk("periodic sync failed, error: %d", ret);
     }

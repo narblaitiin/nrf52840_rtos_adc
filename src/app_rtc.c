@@ -122,6 +122,11 @@ uint64_t app_rtc_get_time(const struct device *rtc_dev)
 //  ========== app_rtc_periodic_sync====================================================
 int8_t app_rtc_periodic_sync(const struct device *rtc_dev)
 {
+    if (!rtc_dev) {
+        printk("RTC device is NULL\n");
+        return -EINVAL;
+    }
+    
     // call this periodically from a thread or workqueue
     int ret = app_rtc_sync_uptime(rtc_dev);
     if (ret < 0) {
