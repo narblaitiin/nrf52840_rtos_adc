@@ -23,12 +23,12 @@ bool rtc_thread_flag = true;
 void rtc_thread_func(void)
 {
 	printk("periodic sync thread started\n");
-	
+
 	const struct device *rtc_dev = DEVICE_DT_GET(DT_NODELABEL(rtc0));
 	while (rtc_thread_flag == true) {
         printk("performing periodic action\n");
         (void)app_rtc_periodic_sync(rtc_dev);	
-        k_sleep(K_SECONDS(1));		
+        k_sleep(K_SECONDS(5));		
 	}
 }
 K_THREAD_DEFINE(rtc_thread_id, STACK_SIZE, rtc_thread_func, NULL, NULL, NULL, PRIORITY, 0, 0);
@@ -68,19 +68,19 @@ int8_t main(void)
     }
 
 	// initialize ADC device
-	// int8_t ret = app_nrf52_adc_init();
-	// if (ret != 1) {
-	// 	printk("failed to initialize ADC device\n");
-	// 	return 0;
-	// }
+	int8_t ret = app_nrf52_adc_init();
+	if (ret != 1) {
+		printk("failed to initialize ADC device\n");
+		return 0;
+	}
 
 	// retrieve the EEPROM device
-	// const struct device *flash_dev = DEVICE_DT_GET(SPI_FLASH_DEVICE);
-	// ret = app_eeprom_init(flash_dev);
-	// if (ret != 1) {
-	// 	printk("failed to initialize QSPI Flash device\n");
-	// 	return 0;
-	// }
+	const struct device *flash_dev = DEVICE_DT_GET(SPI_FLASH_DEVICE);
+	ret = app_eeprom_init(flash_dev);
+	if (ret != 1) {
+		printk("failed to initialize QSPI Flash device\n");
+		return 0;
+	}
 
 	printk("ADC nRF52 and RTC DS3231 Example\n");
 
