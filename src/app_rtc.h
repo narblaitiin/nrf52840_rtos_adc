@@ -16,7 +16,7 @@
 #include <zephyr/drivers/counter.h>
 
 //  ========== defines =====================================================================
-#define ONE_YEAR_MS         31536000000LL
+#define ONE_YEAR_MS                 365LL * 24 * 60 * 60 * 1000
 #define CONFIG_COUNTER_NRF_RTC
 
 //  ========== prototypes ==================================================================

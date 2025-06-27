@@ -27,7 +27,8 @@ void rtc_thread_func(void)
 	const struct device *rtc_dev = DEVICE_DT_GET(DT_NODELABEL(rtc0));
 	while (rtc_thread_flag == true) {
         printk("performing periodic action\n");
-        (void)app_rtc_periodic_sync(rtc_dev);	
+        (void)app_rtc_periodic_sync(rtc_dev);
+		//(void)app_ds3231_periodic_sync(rtc_dev);
         k_sleep(K_SECONDS(5));		
 	}
 }
@@ -47,6 +48,7 @@ void geo_work_handler(struct k_work *work_geo)
 
 	printk("test only internal RTC device\n");
 	uint64_t timestamp =  app_rtc_get_time();
+	//uint64_t timestamp = app_ds3231_get_time(void);
 	printk("timestamp in ms: %llu\n", timestamp);
 }
 K_WORK_DEFINE(geo_work, geo_work_handler);
