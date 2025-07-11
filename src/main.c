@@ -47,7 +47,7 @@ void geo_work_handler(struct k_work *work_geo)
  	// int16_t value = app_nrf52_get_adc();
  	// printk("return velocity: %d mV\n", value);
 
-	printk("test only internal RTC device\n");
+	printk("test only internal and DS3231 RTC device\n");
 
 	// uint64_t timestamp_rtc =  app_rtc_get_time();
 	// printk("timestamp in ms (RTC): %llu\n", timestamp_rtc);

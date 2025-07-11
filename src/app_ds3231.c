@@ -161,6 +161,8 @@ uint64_t app_ds3231_get_time()
     if (offset < 0 && now_ms < (uint64_t)(-offset)) {
         return 0;
     }
+    uint64_t timestamp_ms = now_ms + offset;
+    return timestamp_ms;
 }
 
 //  ========== app_ds3231_periodic_sync====================================================
