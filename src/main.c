@@ -9,6 +9,7 @@
 #include "app_eeprom.h"
 #include "app_adc.h"
 #include "app_rtc.h"
+#include "app_ds3231.h"
 
 #include <zephyr/kernel.h>
 #include <stdbool.h>
@@ -27,8 +28,8 @@ void rtc_thread_func(void)
 	const struct device *rtc_dev = DEVICE_DT_GET(DT_NODELABEL(rtc0));
 	while (rtc_thread_flag == true) {
         printk("performing periodic action\n");
-        (void)app_rtc_periodic_sync(rtc_dev);
-		//(void)app_ds3231_periodic_sync(rtc_dev);
+        //(void)app_rtc_periodic_sync(rtc_dev);
+		(void)app_ds3231_periodic_sync(rtc_dev);
         k_sleep(K_SECONDS(5));		
 	}
 }
@@ -47,9 +48,12 @@ void geo_work_handler(struct k_work *work_geo)
  	// printk("return velocity: %d mV\n", value);
 
 	printk("test only internal RTC device\n");
-	uint64_t timestamp =  app_rtc_get_time();
-	//uint64_t timestamp = app_ds3231_get_time(void);
-	printk("timestamp in ms: %llu\n", timestamp);
+
+	// uint64_t timestamp_rtc =  app_rtc_get_time();
+	// printk("timestamp in ms (RTC): %llu\n", timestamp_rtc);
+
+	uint64_t timestamp_ds3231 = app_ds3231_get_time();
+	printk("timestamp in ms (DS3231): %llu\n", timestamp_ds3231);
 }
 K_WORK_DEFINE(geo_work, geo_work_handler);
 
@@ -63,6 +67,15 @@ K_TIMER_DEFINE(geo_timer, geo_timer_handler, NULL);
 int8_t main(void)
 {
 	// initialize DS3231 RTC device via I2C (Pins: SDA -> P0.09, SCL -> P0.0)
+	const struct device *ds3231_dev = app_ds3231_init();
+    if (!ds3231_dev) {
+        printk("failed to initialize RTC device\n");
+        return 0;
+    } else {
+		set_ds3231_from_unix_time(ds3231_dev, 1721390400); // Set to "2024-07-19 12:00:00" UTC
+	}
+
+	// initialize on-board RTC of MDBT50Q
 	const struct device *rtc_dev = app_rtc_init();
     if (!rtc_dev) {
         printk("failed to initialize RTC device\n");

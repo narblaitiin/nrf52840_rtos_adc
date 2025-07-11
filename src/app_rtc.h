@@ -14,6 +14,7 @@
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/rtc.h>
 #include <zephyr/drivers/counter.h>
+#include <zephyr/sys_clock.h> 
 
 //  ========== defines =====================================================================
 #define ONE_YEAR_MS                 365LL * 24 * 60 * 60 * 1000
