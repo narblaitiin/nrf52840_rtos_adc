@@ -26,10 +26,11 @@ void rtc_thread_func(void)
 	printk("periodic sync thread started\n");
 
 	const struct device *rtc_dev = DEVICE_DT_GET(DT_NODELABEL(rtc0));
+	const struct device *ds3231_dev = DEVICE_DT_GET_ONE(maxim_ds3231);
 	while (rtc_thread_flag == true) {
         printk("performing periodic action\n");
-        //(void)app_rtc_periodic_sync(rtc_dev);
-		(void)app_ds3231_periodic_sync(rtc_dev);
+        (void)app_rtc_periodic_sync(rtc_dev);
+		(void)app_ds3231_periodic_sync(ds3231_dev);
         k_sleep(K_SECONDS(5));		
 	}
 }
@@ -49,8 +50,8 @@ void geo_work_handler(struct k_work *work_geo)
 
 	printk("test only internal and DS3231 RTC device\n");
 
-	// uint64_t timestamp_rtc =  app_rtc_get_time();
-	// printk("timestamp in ms (RTC): %llu\n", timestamp_rtc);
+	uint64_t timestamp_rtc =  app_rtc_get_time();
+	printk("timestamp in ms (RTC): %llu\n", timestamp_rtc);
 
 	uint64_t timestamp_ds3231 = app_ds3231_get_time();
 	printk("timestamp in ms (DS3231): %llu\n", timestamp_ds3231);
