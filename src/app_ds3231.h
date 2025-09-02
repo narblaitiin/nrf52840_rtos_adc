@@ -24,12 +24,12 @@
 #define DS3231_REG_TIME     0x00
 
 //  ========== prototypes ===================================================================
+int8_t app_i2c_read_time(const struct device *i2c_dev, struct tm *tm);
+int8_t app_i2c_write_time(const struct device *i2c_dev, const struct tm *tm);
 const struct device *app_ds3231_init(void);
+void app_ds3231_set_time(const struct device *i2c_dev, int64_t unix_time);
 int8_t  app_ds3231_sync_uptime(const struct device *i2c_dev);
 uint64_t app_ds3231_get_time();
 int8_t app_ds3231_periodic_sync(const struct device *i2c_dev);
-int8_t ds3231_set_time(const struct device *i2c_dev, const struct tm *tm);
-int8_t ds3231_get_time(const struct device *i2c_dev, struct tm *tm);
-void set_ds3231_from_unix_time(const struct device *rtc_dev, int64_t unix_time);
 
 #endif /* APP_DS3231_H */

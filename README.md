@@ -13,7 +13,7 @@ This allows us to test the analog part of PCB and the internal ADC of the MDBT50
 The following commands clean build folder, build and flash the sample:
 
 **Command to use**
-
+````
 west build -t pristine
 
 west build -p always -b mdbt50q_lora_dev applications/nrf52840_rtos_adc

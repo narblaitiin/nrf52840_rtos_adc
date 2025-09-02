@@ -24,18 +24,8 @@ static uint8_t bin_to_bcd(uint8_t val)
     return ((val / 10) << 4) | (val % 10);
 }
 
-//  ========== et_ds3231_from_unix_time ==================================================
-void set_ds3231_from_unix_time(const struct device *rtc_dev, int64_t unix_time)
-{
-    struct tm tm;
-    time_t t = (time_t)unix_time;
-    gmtime_r(&t, &tm);  
-    //timeutil_localtime64(unix_time, &tm);
-    ds3231_set_time(rtc_dev, &tm);
-}
-
-// ========== ds3231_set_time ============================================================
-int8_t ds3231_set_time(const struct device *i2c_dev, const struct tm *tm)
+// ========== app_i2c_write_time ============================================================
+int8_t app_i2c_write_time(const struct device *i2c_dev, const struct tm *tm)
 {
     uint8_t time_buf[7];
     int8_t ret;
@@ -62,8 +52,8 @@ int8_t ds3231_set_time(const struct device *i2c_dev, const struct tm *tm)
     return 0;
 }
 
-//  ========== ds3231_get_time ================================================================ 
-int8_t ds3231_get_time(const struct device *i2c_dev, struct tm *tm)
+//  ========== app_i2c_read_time ========================================================= 
+int8_t app_i2c_read_time(const struct device *i2c_dev, struct tm *tm)
 {
     uint8_t time_buf[7];
     int8_t ret;
@@ -89,7 +79,7 @@ int8_t ds3231_get_time(const struct device *i2c_dev, struct tm *tm)
     return 0;
 }
 
-//  ========== app_rtc_init ================================================================
+//  ========== app_rtc_init ==============================================================
 const struct device *app_ds3231_init(void)
 {
     const struct device *i2c_dev = DEVICE_DT_GET_ONE(maxim_ds3231);
@@ -103,6 +93,16 @@ const struct device *app_ds3231_init(void)
 
     printk("DS3231 initialized and started successfully (device: %s)\n", i2c_dev->name);
     return i2c_dev;
+}
+
+//  ========== app_ds3231_set_time =========================================================
+void app_ds3231_set_time(const struct device *i2c_dev, int64_t unix_time)
+{
+    struct tm tm;
+    time_t t = (time_t)unix_time;
+    gmtime_r(&t, &tm);  
+    //timeutil_localtime64(unix_time, &tm);
+    app_i2c_write_time(i2c_dev, &tm);
 }
 
 //  ========== app_ds3231_sync_uptime ========================================================
@@ -121,7 +121,7 @@ int8_t app_ds3231_sync_uptime(const struct device *i2c_dev)
     int64_t new_offset_ms;
 
     // get time from external RTC
-    if (ds3231_get_time(i2c_dev, &rtc_tm) != 0) {
+    if (app_i2c_read_time(i2c_dev, &rtc_tm) != 0) {
         printk("failed to read time from DS3231\n");
         return -EIO;
     }
@@ -165,7 +165,7 @@ uint64_t app_ds3231_get_time()
     return timestamp_ms;
 }
 
-//  ========== app_ds3231_periodic_sync====================================================
+//  ========== app_ds3231_periodic_sync ====================================================
 int8_t app_ds3231_periodic_sync(const struct device *i2c_dev)
 {
     if (!i2c_dev) {

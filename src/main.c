@@ -29,7 +29,7 @@ void rtc_thread_func(void)
 	const struct device *ds3231_dev = DEVICE_DT_GET_ONE(maxim_ds3231);
 	while (rtc_thread_flag == true) {
         printk("performing periodic action\n");
-        (void)app_rtc_periodic_sync(rtc_dev);
+    //    (void)app_rtc_periodic_sync(rtc_dev);
 		(void)app_ds3231_periodic_sync(ds3231_dev);
         k_sleep(K_SECONDS(5));		
 	}
@@ -44,17 +44,17 @@ void geo_work_handler(struct k_work *work_geo)
  	// printk("ADC handler called\n");
  	// app_eeprom_handler(rom_dev);
 
- 	// printk("test only sensor connected on ADC P0.03\n");
- 	// int16_t value = app_nrf52_get_adc();
- 	// printk("return velocity: %d mV\n", value);
+// 	printk("test only sensor connected on ADC P0.03\n");
+ 	int16_t value = app_nrf52_get_adc();
+ 	printk("return velocity: %d mV\n", value);
 
-	printk("test only internal and DS3231 RTC device\n");
+//	printk("test only internal and DS3231 RTC device\n");
 
-	uint64_t timestamp_rtc =  app_rtc_get_time();
-	printk("timestamp in ms (RTC): %llu\n", timestamp_rtc);
+//	uint64_t timestamp_rtc =  app_rtc_get_time();
+//	printk("timestamp in ms (RTC): %llu\n", timestamp_rtc);
 
-	uint64_t timestamp_ds3231 = app_ds3231_get_time();
-	printk("timestamp in ms (DS3231): %llu\n", timestamp_ds3231);
+//	uint64_t timestamp_ds3231 = app_ds3231_get_time();
+//	printk("timestamp in ms (DS3231): %llu\n", timestamp_ds3231);
 }
 K_WORK_DEFINE(geo_work, geo_work_handler);
 
@@ -73,7 +73,7 @@ int8_t main(void)
         printk("failed to initialize RTC device\n");
         return 0;
     } else {
-		set_ds3231_from_unix_time(ds3231_dev, 1721390400); // Set to "2024-07-19 12:00:00" UTC
+		app_ds3231_set_time(ds3231_dev, 1721390400); // set to "2024-07-19 12:00:00" UTC
 	}
 
 	// initialize on-board RTC of MDBT50Q
@@ -81,7 +81,9 @@ int8_t main(void)
     if (!rtc_dev) {
         printk("failed to initialize RTC device\n");
         return 0;
-    }
+    } else {
+		app_rtc_set_time(rtc_dev, 1721050200000ULL); // e.g., for "2024-07-15 12:30:00 UTC" in ms
+	}
 
 	// initialize ADC device
 	int8_t ret = app_nrf52_adc_init();

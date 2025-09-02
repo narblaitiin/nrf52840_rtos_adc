@@ -36,7 +36,36 @@ const struct device *app_rtc_init(void)
     return rtc_dev;
 }
 
-///  ========== app_rtc_sync_uptime ========================================================
+//  ========== app_rtc_set_time ============================================================
+int8_t app_rtc_set_time(const struct device *rtc_dev, uint64_t target_time_ms)
+{
+    if (!rtc_dev) {
+        printk("RTC device is NULL\n");
+        return -EINVAL;
+    }
+
+    uint32_t rtc_ticks;
+    int8_t ret = counter_get_value(rtc_dev, &rtc_ticks);
+    if (ret < 0) {
+        printk("failed to read RTC ticks: %d\n", ret);
+        return ret;
+    }
+
+    uint32_t frequency = counter_get_frequency(rtc_dev);
+    int64_t rtc_time_ms = ((int64_t)rtc_ticks * 1000) / frequency;
+
+    int64_t new_offset = (int64_t)target_time_ms - rtc_time_ms;
+
+    // safely update the global offset
+    k_mutex_lock(&offset_mutex, K_FOREVER);
+    system_rtc_offset_ms = new_offset;
+    k_mutex_unlock(&offset_mutex);
+
+    printk("RTC time logically set to %llu ms via offset (%lld ms)\n", target_time_ms, new_offset);
+    return 0;
+}
+
+//  ========== app_rtc_sync_uptime ========================================================
 // synchronize the system uptime with the on-board RTC.
 int8_t app_rtc_sync_uptime(const struct device *rtc_dev)
 {

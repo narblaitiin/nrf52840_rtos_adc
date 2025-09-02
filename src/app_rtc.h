@@ -22,7 +22,8 @@
 
 //  ========== prototypes ==================================================================
 const struct device *app_rtc_init(void);
-int8_t  app_rtc_sync_uptime(const struct device *i2c_dev);
+int8_t app_rtc_set_time(const struct device *rtc_dev, uint64_t target_time_ms);
+int8_t  app_rtc_sync_uptime(const struct device *rtc_dev);
 uint64_t app_rtc_get_time();
 int8_t app_rtc_periodic_sync(const struct device *rtc_dev);
 
