@@ -30,8 +30,8 @@ void rtc_thread_func(void)
 	while (rtc_thread_flag == true) {
         printk("performing periodic action\n");
     //    (void)app_rtc_periodic_sync(rtc_dev);
-		(void)app_ds3231_periodic_sync(ds3231_dev);
-        k_sleep(K_SECONDS(5));		
+	//	(void)app_ds3231_periodic_sync(ds3231_dev);
+        k_sleep(K_SECONDS(1));		
 	}
 }
 K_THREAD_DEFINE(rtc_thread_id, STACK_SIZE, rtc_thread_func, NULL, NULL, NULL, PRIORITY, 0, 0);
@@ -41,20 +41,20 @@ void geo_work_handler(struct k_work *work_geo)
 {
 // 	const struct device *rom_dev = DEVICE_DT_GET(SPI_FLASH_DEVICE);
 
- 	// printk("ADC handler called\n");
- 	// app_eeprom_handler(rom_dev);
+// 	printk("ADC handler called\n");
+// 	app_eeprom_handler(rom_dev);
 
-// 	printk("test only sensor connected on ADC P0.03\n");
- 	int16_t value = app_nrf52_get_adc();
- 	printk("return velocity: %d mV\n", value);
+//	printk("test only sensor connected on ADC P0.03\n");
+//	int16_t value = app_nrf52_get_adc();
+//	printk("return velocity: %d mV\n", value);
 
-//	printk("test only internal and DS3231 RTC device\n");
+	printk("test only internal and DS3231 RTC device\n");
 
-//	uint64_t timestamp_rtc =  app_rtc_get_time();
-//	printk("timestamp in ms (RTC): %llu\n", timestamp_rtc);
+	uint64_t timestamp_rtc =  app_rtc_get_time();
+	printk("timestamp in ms (RTC): %llu\n", timestamp_rtc);
 
-//	uint64_t timestamp_ds3231 = app_ds3231_get_time();
-//	printk("timestamp in ms (DS3231): %llu\n", timestamp_ds3231);
+	uint64_t timestamp_ds3231 = app_ds3231_get_time();
+	printk("timestamp in ms (DS3231): %llu\n", timestamp_ds3231);
 }
 K_WORK_DEFINE(geo_work, geo_work_handler);
 
@@ -103,9 +103,9 @@ int8_t main(void)
 	printk("ADC nRF52 and RTC DS3231 Example\n");
 
 	// enable periodic rtc sync thread
-	rtc_thread_flag = true;
+	rtc_thread_flag = false;
 
 	// start the timer to trigger the interrupt subroutine every 30 seconds
-	k_timer_start(&geo_timer, K_NO_WAIT, K_MSEC(1000));
+	k_timer_start(&geo_timer, K_NO_WAIT, K_MSEC(5000));
 	return 0;
 }
