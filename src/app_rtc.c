@@ -5,15 +5,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-//  ========== includes ====================================================================
+//  ========== includes ==============================================================================
 #include "app_rtc.h"
 
-//  ========== globals ====================================================================
+//  ========== globals ===============================================================================
 // global variable to track the offset between the system clock and RTC
 static int64_t system_rtc_offset_ms = 0;
 static struct k_mutex offset_mutex;
 
-//  ========== app_rtc_init ================================================================
+//  ========== app_rtc_init ==========================================================================
 const struct device *app_rtc_init(void)
 {
     const struct device *rtc_dev = DEVICE_DT_GET(DT_NODELABEL(rtc0));
@@ -23,7 +23,7 @@ const struct device *app_rtc_init(void)
     }
 
     // start the counter
-    int ret = counter_start(rtc_dev);
+    int8_t ret = counter_start(rtc_dev);
     if (ret < 0) {
         printk("failed to start RTC: %d\n", ret);
         return NULL;
@@ -36,7 +36,7 @@ const struct device *app_rtc_init(void)
     return rtc_dev;
 }
 
-//  ========== app_rtc_set_time ============================================================
+//  ========== app_rtc_set_time ======================================================================
 int8_t app_rtc_set_time(const struct device *rtc_dev, uint64_t target_time_ms)
 {
     if (!rtc_dev) {
@@ -65,7 +65,7 @@ int8_t app_rtc_set_time(const struct device *rtc_dev, uint64_t target_time_ms)
     return 0;
 }
 
-//  ========== app_rtc_sync_uptime ========================================================
+//  ========== app_rtc_sync_uptime ===================================================================
 // synchronize the system uptime with the on-board RTC.
 int8_t app_rtc_sync_uptime(const struct device *rtc_dev)
 {
@@ -85,7 +85,7 @@ int8_t app_rtc_sync_uptime(const struct device *rtc_dev)
     uint64_t t1_cycles = k_cycle_get_64();
 
     // retrieve the current RTC counter value
-    int ret = counter_get_value(rtc_dev, &rtc_ticks);
+    int8_t ret = counter_get_value(rtc_dev, &rtc_ticks);
     if (ret < 0) {
         printk("failed to get RTC counter value, error: %d\n", ret);
         return ret;
@@ -129,7 +129,7 @@ int8_t app_rtc_sync_uptime(const struct device *rtc_dev)
     return 0;
 }
 
-//  ========== app_rtc_get_time ==========================================================
+//  ========== app_rtc_get_time ======================================================================
 uint64_t app_rtc_get_time()
 {
     int64_t current_uptime_ms = k_uptime_get();
@@ -155,7 +155,7 @@ uint64_t app_rtc_get_time()
     return timestamp_ms;
 }
 
-//  ========== app_rtc_periodic_sync====================================================
+//  ========== app_rtc_periodic_sync==================================================================
 int8_t app_rtc_periodic_sync(const struct device *rtc_dev)
 {
     if (!rtc_dev) {
@@ -164,7 +164,7 @@ int8_t app_rtc_periodic_sync(const struct device *rtc_dev)
     }
     
     // call this periodically from a thread or workqueue
-    int ret = app_rtc_sync_uptime(rtc_dev);
+    int8_t ret = app_rtc_sync_uptime(rtc_dev);
     if (ret < 0) {
         printk("periodic sync failed, error: %d", ret);
     }
